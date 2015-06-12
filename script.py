@@ -90,7 +90,7 @@ for task in tasks:
                 'revision': revision,
                 'completed': True
             }
-            response = requests.patch(update_url, data=json.dumps(data), headers=headers).text
+            response = requests.patch(update_url, data=json.dumps(data), headers=headers)
             if response.status_code == 200:
                 logger.info("Marked task {} as completed for {}.".format(task['id'], due_date))
             else:
@@ -108,8 +108,7 @@ for task in tasks:
                 'revision': revision + 1,
                 'completed': True
             }
-            response = requests.patch(update_url, data=json.dumps(data), headers=headers).text
-
+            response = requests.patch(update_url, data=json.dumps(data), headers=headers)
             if response.status_code == 200:
                 logger.info("Marked task {} as incompleted for {}.".format(task['id'], yesterday))
             else:
