@@ -72,18 +72,19 @@ if total_hours >= HARVEST_HOURS_REQUIRED:
     for task in tasks:
         due_date = parser.parse(task['due_date']).date()
         created_by_request_id = task['created_by_request_id']
+        revision = task['revision']
         if due_date == today and (todays_task_id == str(task['id']) or todays_task_id in created_by_request_id):
-            new_revision = task['revision'] + 1
             data = {
-                'revision': new_revision,
+                'revision': revision,
                 'completed': True
             }
-            requests.patch(update_url, data=json.dumps(data), headers=headers)
+            print requests.patch(update_url, data=json.dumps(data), headers=headers).text
         elif due_date == yesterday:
             data = {
+                'revision': revision,
                 'list_id': WL_TRASH_LIST_ID,
                 'completed': True
             }
-            requests.patch(update_url, data=json.dumps(data), headers=headers)
+            print requests.patch(update_url, data=json.dumps(data), headers=headers).text
 
 
