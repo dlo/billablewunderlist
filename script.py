@@ -2,6 +2,7 @@
 # vim: set fileencoding=utf-8 :
 
 import logging
+import sys
 import collections
 import json
 import datetime
@@ -10,6 +11,7 @@ from dateutil import parser
 
 import os
 
+logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 HARVEST_EMAIL = os.environ['HARVEST_EMAIL']
