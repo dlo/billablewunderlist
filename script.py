@@ -1,7 +1,7 @@
 # vim: set fileencoding=utf-8 :
 
 import json
-from datetime import datetime
+import datetime
 import requests
 from dateutil import parser
 
