@@ -71,6 +71,7 @@ headers = {
 response = requests.get(url, params=params, headers=headers)
 tasks = response.json()
 
+logging.info("Looping through tasks...")
 for task in tasks:
     update_url = "https://a.wunderlist.com/api/v1/tasks/{}".format(task['id'])
     if 'due_date' in task:
