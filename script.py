@@ -1,5 +1,6 @@
 # vim: set fileencoding=utf-8 :
 
+import collections
 import json
 import datetime
 import requests
@@ -51,7 +52,7 @@ for entry in entries:
 weekdays_to_tasks = [WL_MON_TASK, WL_TUE_TASK, WL_WED_TASK, WL_THU_TASK, WL_FRI_TASK]
 
 total_hours = sum(map(lambda k: k['hours'], entries))
-if total_hours >= threshold:
+if total_hours >= HARVEST_HOURS_REQUIRED:
     # Get current day's task in Wunderlist. Mark as completed. If yesterday's task was incomplete, move it to the trash.
     url = "https://a.wunderlist.com/api/v1/tasks"
     params = {'list_id': WL_CALENDAR_LIST_ID}
