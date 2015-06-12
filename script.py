@@ -18,8 +18,8 @@ WL_TUE_TASK = os.environ['WL_TUE_TASK']
 WL_WED_TASK = os.environ['WL_WED_TASK']
 WL_THU_TASK = os.environ['WL_THU_TASK']
 WL_FRI_TASK = os.environ['WL_FRI_TASK']
-WL_CALENDAR_LIST_ID = os.environ['WL_CALENDAR_LIST_ID']
-WL_TRASH_LIST_ID = os.environ['WL_TRASH_LIST_ID']
+WL_CALENDAR_LIST_ID = int(os.environ['WL_CALENDAR_LIST_ID'])
+WL_INCOMPLETE_LIST_ID = int(os.environ['WL_INCOMPLETE_LIST_ID'])
 
 WL_ACCESS_TOKEN = os.environ['WL_ACCESS_TOKEN']
 WL_CLIENT_ID = os.environ['WL_CLIENT_ID']
@@ -52,39 +52,49 @@ for entry in entries:
 weekdays_to_tasks = [WL_MON_TASK, WL_TUE_TASK, WL_WED_TASK, WL_THU_TASK, WL_FRI_TASK]
 
 total_hours = sum(map(lambda k: k['hours'], entries))
-if total_hours >= HARVEST_HOURS_REQUIRED:
-    # Get current day's task in Wunderlist. Mark as completed. If yesterday's task was incomplete, move it to the trash.
-    url = "https://a.wunderlist.com/api/v1/tasks"
-    params = {'list_id': WL_CALENDAR_LIST_ID}
-    response = requests.get(url, params=params, headers=headers)
-    tasks = response.json()
-    today = datetime.date.today()
-    yesterday = today - datetime.timedelta(days=1)
-    todays_task_id = weekdays_to_tasks[today.weekday()]
 
-    headers = {
-        'X-Access-Token': WL_ACCESS_TOKEN,
-        'X-Client-ID': WL_CLIENT_ID,
-        'Content-Type': "application/json"
-    }
+# Get current day's task in Wunderlist. Mark as completed. If yesterday's task was incomplete, move it to the trash.
+url = "https://a.wunderlist.com/api/v1/tasks"
+params = {'list_id': WL_CALENDAR_LIST_ID}
+today = datetime.date.today()
+yesterday = today - datetime.timedelta(days=1)
+todays_task_id = weekdays_to_tasks[today.weekday()]
+
+headers = {
+    'X-Access-Token': WL_ACCESS_TOKEN,
+    'X-Client-ID': WL_CLIENT_ID,
+    'Content-Type': "application/json"
+}
+
+response = requests.get(url, params=params, headers=headers)
+tasks = response.json()
+
+for task in tasks:
     update_url = "https://a.wunderlist.com/api/v1/tasks/{}".format(task['id'])
-
-    for task in tasks:
+    if 'due_date' in task:
         due_date = parser.parse(task['due_date']).date()
         created_by_request_id = task['created_by_request_id']
         revision = task['revision']
-        if due_date == today and (todays_task_id == str(task['id']) or todays_task_id in created_by_request_id):
-            data = {
-                'revision': revision,
-                'completed': True
-            }
-            print requests.patch(update_url, data=json.dumps(data), headers=headers).text
-        elif due_date == yesterday:
-            data = {
-                'revision': revision,
-                'list_id': WL_TRASH_LIST_ID,
-                'completed': True
-            }
-            print requests.patch(update_url, data=json.dumps(data), headers=headers).text
+        if total_hours >= HARVEST_HOURS_REQUIRED and \
+                due_date == today and \
+                (todays_task_id == str(task['id']) or todays_task_id in created_by_request_id):
 
+            data = {
+                'revision': revision,
+                'completed': True
+            }
+            requests.patch(update_url, data=json.dumps(data), headers=headers).text
+        elif due_date == yesterday:
+            # Have to move and then complete the task in two steps
+            data = {
+                'revision': revision,
+                'list_id': WL_INCOMPLETE_LIST_ID
+            }
+            requests.patch(update_url, data=json.dumps(data), headers=headers).text
+
+            data = {
+                'revision': revision + 1,
+                'completed': True
+            }
+            requests.patch(update_url, data=json.dumps(data), headers=headers).text
 
