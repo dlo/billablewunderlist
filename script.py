@@ -10,6 +10,8 @@ from dateutil import parser
 
 import os
 
+logger = logging.getLogger(__name__)
+
 HARVEST_EMAIL = os.environ['HARVEST_EMAIL']
 HARVEST_PASSWORD = os.environ['HARVEST_PASSWORD']
 HARVEST_HOURS_REQUIRED = int(os.environ['HARVEST_HOURS_REQUIRED'])
@@ -71,7 +73,7 @@ headers = {
 response = requests.get(url, params=params, headers=headers)
 tasks = response.json()
 
-logging.info("Looping through tasks...")
+logger.info("Looping through tasks...")
 for task in tasks:
     update_url = "https://a.wunderlist.com/api/v1/tasks/{}".format(task['id'])
     if 'due_date' in task:
@@ -88,9 +90,9 @@ for task in tasks:
             }
             response = requests.patch(update_url, data=json.dumps(data), headers=headers).text
             if response.status_code == 200:
-                logging.info("Marked task {} as completed for {}.".format(task['id'], due_date))
+                logger.info("Marked task {} as completed for {}.".format(task['id'], due_date))
             else:
-                logging.error("There was an error marking task {} as completed for {}.".format(task['id'], due_date))
+                logger.error("There was an error marking task {} as completed for {}.".format(task['id'], due_date))
 
         elif due_date == yesterday:
             # Have to move and then complete the task in two steps
@@ -107,6 +109,6 @@ for task in tasks:
             response = requests.patch(update_url, data=json.dumps(data), headers=headers).text
 
             if response.status_code == 200:
-                logging.info("Marked task {} as incompleted for {}.".format(task['id'], yesterday))
+                logger.info("Marked task {} as incompleted for {}.".format(task['id'], yesterday))
             else:
-                logging.error("There was an error marking task {} as incomplete for {}.".format(task['id'], yesterday))
+                logger.error("There was an error marking task {} as incomplete for {}.".format(task['id'], yesterday))
