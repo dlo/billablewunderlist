@@ -1,5 +1,7 @@
+#!/usr/bin/env python
 # vim: set fileencoding=utf-8 :
 
+import logging
 import collections
 import json
 import datetime
@@ -83,7 +85,12 @@ for task in tasks:
                 'revision': revision,
                 'completed': True
             }
-            requests.patch(update_url, data=json.dumps(data), headers=headers).text
+            response = requests.patch(update_url, data=json.dumps(data), headers=headers).text
+            if response.status_code == 200:
+                logging.info("Marked task {} as completed for {}.".format(task['id'], due_date))
+            else:
+                logging.error("There was an error marking task {} as completed for {}.".format(task['id'], due_date))
+
         elif due_date == yesterday:
             # Have to move and then complete the task in two steps
             data = {
@@ -96,5 +103,9 @@ for task in tasks:
                 'revision': revision + 1,
                 'completed': True
             }
-            requests.patch(update_url, data=json.dumps(data), headers=headers).text
+            response = requests.patch(update_url, data=json.dumps(data), headers=headers).text
 
+            if response.status_code == 200:
+                logging.info("Marked task {} as incompleted for {}.".format(task['id'], yesterday))
+            else:
+                logging.error("There was an error marking task {} as incomplete for {}.".format(task['id'], yesterday))
