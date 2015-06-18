@@ -4,7 +4,7 @@ billablewunderlist
 Sets a Wunderlist task as done when a certain amount of billable time has been clocked in Harvest.
 
 Deployment
-==========
+----------
 
     $ heroku create
     $ heroku config:set HARVEST_EMAIL=production
